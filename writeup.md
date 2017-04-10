@@ -31,7 +31,7 @@ This is it.
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-I used a jupyter notebook to carry out this project.
+I used a jupyter notebook to carry out this project. File is P5.ipynb and exported as P5.html
 
 Using the code in cell 1 I was able to do a visual exploration of the car vs not_cars dataset. There were a total of 8792 car images vs 8968 not_car images. Here's a random pick of a car/not_car:
 
@@ -187,6 +187,8 @@ Here are two screenshots from the video. One at frame 0, another one from frame 
 
 ![alt text](./output_images/heatmap_0.png "")
 ![alt text](./output_images/heatmap_1.png "")
+
+To produce the final video the LABELED mode is use. This mode draws a box through the thresholded heatmaps to create the final envelope detection.
 
 
 
