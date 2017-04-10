@@ -91,38 +91,108 @@ As a classifier I used linear SVM using sklearn.svm. The code to train the class
 
 ####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+I implemented an algorithm in cell 5:13-78 where a subsampling of the image to be searched is done. This effectively makes the feature windows larger when doing the search. Every time `find_cars` is called a `scale` factor is supplied that defines the resizing stretch. 
 
-![alt text][image3]
+
 
 ####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+In order to explore the type of scale to use during the sliding window search, I explored different parameters to see how it would affect detection of cars at different distances, that is at different pixel sizes. Here is the output at different scales (number on top of pictures is the scale factor):
 
-![alt text][image4]
+![alt text](./output_images/sw1.png "")
+![alt text](./output_images/sw2.png "")
+![alt text](./output_images/sw3.png "")
+![alt text](./output_images/sw4.png "")
+![alt text](./output_images/sw5.png "")
+![alt text](./output_images/sw6.png "")
+![alt text](./output_images/sw7.png "")
+![alt text](./output_images/sw8.png "")
+![alt text](./output_images/sw9.png "")
+
+
+From this I selected 3-4 scales factors to search for. In every case the YCrCb color space was used, HOG features performed in every channel, plus spatially binned color and histograms. Detection was pretty solid.
+
+The selected scale factors as well as their search windows are identified in cell 7:10-46. An example of these is embedded here:
+```python        
+        self.subsearch_pars_list = [
+            {
+            'ystart' : 400,
+            'ystop' : 500,
+            'scale' : 1.0,
+            'svc' : svc,
+            'X_scaler' : X_scaler,
+            'color' : (0,0,255)
+            },
+            {
+            'ystart' : 400,
+            'ystop' : 550,
+            'scale' : 1.5,
+            'svc' : svc,
+            'X_scaler' : X_scaler,
+            'color' : (255,0,255)
+            },
+            {
+            'ystart' : 400,
+            'ystop' : 575,
+            'scale' : 2,
+            'svc' : svc,
+            'X_scaler' : X_scaler,
+            'color' : (255,0,0)
+            },
+            {
+            'ystart' : 400,
+            'ystop' : 600,
+            'scale' : 2.5,
+            'svc' : svc,
+            'X_scaler' : X_scaler,
+            'color' : (255,255,0)
+            },
+            {
+            'ystart' : 450,
+            'ystop' : 656,
+            'scale' : 3,
+            'svc' : svc,
+            'X_scaler' : X_scaler,
+            'color' : (0,255,255)
+            }
+        ]
+```
+
+Every item in this list results in a call to `find_cars` in cell 7:58, and the detected bboxes are accumulated in `detections` in cell 7:59.  This detections includes ALL the detections at all levels defined in the `subsearch_pars_list`
+
+In order to visualize the actual searching grid that is produced by the above parameters I have defined the `Pipeline.draw_subsampled_searches()` in cell 7:59. This goes through the different search parameters and draws every single location that will be searched. Here is the result for the parameters above:
+
+![alt text](./output_images/search_levels.png "")
+Every searched level is drawn in different colors. Cars further in the distance correspond to the finer search grid, while cars further close have the bigger search window.
+
+
 ---
 
 ### Video Implementation
 
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./final_output.mp4)
 
 
 ####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+In order to remove false positives I did the following:
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+1. Define a window of frames to clump the detections. The actual value is defined in cell 6:10 with the `self.fbc` mark
+2. All the detections are then passed onto `HeatMap.process_frame_detections()` and a heatmap is created of the common areas. 
+3. A threshold is applied to the heatmap to remove false positives. I used heatmap_th = 10.
+4. The scipy.ndimage.measurements.label function is used to crate labeled boxes. 
 
-### Here are six frames and their corresponding heatmaps:
 
-![alt text][image5]
+The Pipeline for video creation is defined in cell 7 in the class Pipeline(). There are three modes of operation, BBOXES, HEATMAP and LABELED that output different stages of the pipeline for debugging. In particular looking at HEATMAP is useful to identify the correct behavior of the pipeline.
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
+Here's a [link to a heatmap video](./heatmap_output.mp4)
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
+Here are two screenshots from the video. One at frame 0, another one from frame 10. Notice how we are using a grayscale instead of yellow-red representation. 
+
+![alt text](./output_images/heatmap_0.png "")
+![alt text](./output_images/heatmap_1.png "")
+
 
 
 
@@ -132,5 +202,6 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
-
+* Further tuning of the hierarchical is needed. The current settings on `subserch_par_list` have been selected through experimentation, but in reality, a wider set of testing images/videos should be employed to tune these search windows.
+* The pipeline *correctly* identifies cars coming in the other direction, but in reality they should not be part of the detection as they are not in our line. we could make the search window trapezoidal in nature to ignore cars from the other lanes. Maybe calculate the direction of movement of the cars and if against our flow, flag them as not valid.
+* Further tuning of `subsearch_par_list` would yield speed improvements. Right now, there are areas that are searched multiple times at different levels which is likely not needed.
