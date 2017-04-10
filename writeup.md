@@ -1,8 +1,3 @@
-##Writeup Template
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
 **Vehicle Detection Project**
 
 The goals / steps of this project are the following:
@@ -23,18 +18,18 @@ The goals / steps of this project are the following:
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
 ---
-###Writeup / README
+### Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
 
 This is it.
 
-###Histogram of Oriented Gradients (HOG)
+### Histogram of Oriented Gradients (HOG)
 
-####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
+#### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
 I used a jupyter notebook to carry out this project.
 
@@ -50,7 +45,7 @@ Here is an example of the output:
 
 The code that performs this visualization is in cell 2
 
-####2. Explain how you settled on your final choice of HOG parameters.
+#### 2. Explain how you settled on your final choice of HOG parameters.
 
 In cell 2:22-24 one can set the parameters for the hog image features. I experimeted with a few values. Lower values of orientation counts provide more 'generalization' but less detail.
 Here is an example with 16 orientations, and `pixels_per_cell=(16,16)`
@@ -59,7 +54,7 @@ Here is an example with 16 orientations, and `pixels_per_cell=(16,16)`
 
 At this level of `pixels_per_cell` it seems gradient detection is a bit too sparse. I ended using the values in the example earlier of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`
 
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+#### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 I also used spatial binning and the color histogram to augment the hog features before training the classifer. This can be seen in cell 3. The function `extract_block_features` performs all the feature extractions by calling `bin_spatial` cell 3:61, `color_hist` cell 3:66 and `get_hog_features` on cell 3:78. 
 
@@ -87,15 +82,15 @@ Hog features are being used in all channels, as well as spatial features and his
 
 As a classifier I used linear SVM using sklearn.svm. The code to train the classifier is seen in cell 4:8-31. I used a 80/20 split for my training/testing sets cell 4:13. 
 
-###Sliding Window Search
+### Sliding Window Search
 
-####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+#### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
 I implemented an algorithm in cell 5:13-78 where a subsampling of the image to be searched is done. This effectively makes the feature windows larger when doing the search. Every time `find_cars` is called a `scale` factor is supplied that defines the resizing stretch. 
 
 
 
-####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 In order to explore the type of scale to use during the sliding window search, I explored different parameters to see how it would affect detection of cars at different distances, that is at different pixel sizes. Here is the output at different scales (number on top of pictures is the scale factor):
 
@@ -170,11 +165,11 @@ Every searched level is drawn in different colors. Cars further in the distance 
 
 ### Video Implementation
 
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
+#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 Here's a [link to my video result](./final_output.mp4)
 
 
-####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
+#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
 In order to remove false positives I did the following:
 
@@ -198,9 +193,9 @@ Here are two screenshots from the video. One at frame 0, another one from frame 
 
 ---
 
-###Discussion
+### Discussion
 
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 * Further tuning of the hierarchical is needed. The current settings on `subserch_par_list` have been selected through experimentation, but in reality, a wider set of testing images/videos should be employed to tune these search windows.
 * The pipeline *correctly* identifies cars coming in the other direction, but in reality they should not be part of the detection as they are not in our line. we could make the search window trapezoidal in nature to ignore cars from the other lanes. Maybe calculate the direction of movement of the cars and if against our flow, flag them as not valid.
